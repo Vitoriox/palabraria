@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-20",
+  "display_date": "viernes, 20 de noviembre de 2026",
+  "word": "noctambular",
+  "pos": [
+    "intr."
+  ],
+  "url": "https://dle.rae.es/noctambular?m=wotd2",
+  "definition": "Andar vagando de noche.",
+  "other_senses": [],
+  "source": "DLE, 24.ª edición (RAE-ASALE)",
+  "translations": {
+    "en": {
+      "term": "to wander around at night",
+      "definition": "To walk about at night.",
+      "provider": "manual",
+      "verified": true
+    },
+    "de": {
+      "term": "nachts umherwandern",
+      "definition": "Nachts umherziehen.",
+      "provider": "manual",
+      "verified": true
+    }
+  },
+  "translation_status": "manual",
+  "fetched_at": "2026-11-20T15:25:27+00:00"
+}
