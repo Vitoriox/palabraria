@@ -78,22 +78,6 @@ class WordEntry:
 
     def to_dict(self) -> dict:
         primary = self.primary
-        other = []
-        seen = {primary.definition.casefold()}
-        for sense in self.senses[1:]:
-            key = sense.definition.casefold()
-            if not sense.definition or key in seen:
-                continue
-            seen.add(key)
-            other.append(
-                {
-                    "acepcion": sense.acepcion,
-                    "definition": sense.definition,
-                }
-            )
-            if len(other) == 4:
-                break
-
         return {
             "date": self.iso_date.isoformat(),
             "display_date": self.display_date,
@@ -101,7 +85,6 @@ class WordEntry:
             "pos": primary.pos,
             "url": self.url,
             "definition": primary.definition,
-            "other_senses": other,
             "source": "DLE, 24.ª edición (RAE-ASALE)",
         }
 

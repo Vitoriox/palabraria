@@ -83,7 +83,7 @@ class EntryTests(unittest.TestCase):
             self.assertTrue(sense.definition)
             self.assertNotIn("Permanecer en un banco", sense.definition)
 
-    def test_to_dict_limits_other_senses(self) -> None:
+    def test_to_dict_keeps_only_primary_sense(self) -> None:
         _, senses = parse_entry(fixture("banco.html"), "https://dle.rae.es/banco")
         entry = WordEntry(
             word="banco",
@@ -93,9 +93,13 @@ class EntryTests(unittest.TestCase):
             senses=senses,
         )
         data = entry.to_dict()
-        self.assertLessEqual(len(data["other_senses"]), 4)
+        self.assertNotIn("other_senses", data)
         self.assertEqual(data["date"], "2026-11-20")
         self.assertEqual(data["pos"], ["m."])
+        self.assertEqual(
+            data["definition"],
+            "Asiento, con respaldo o sin él, en que pueden sentarse dos o más personas.",
+        )
 
     def test_clean_text_removes_space_before_punctuation(self) -> None:
         from bs4 import BeautifulSoup
