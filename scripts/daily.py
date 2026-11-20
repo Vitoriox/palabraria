@@ -29,6 +29,22 @@ def write_json(path: Path, data: dict) -> None:
     os.replace(temporary, path)
 
 
+def check_translations(data: dict) -> None:
+    """Flag successful runs with a missing term so Actions surfaces them."""
+    if data.get("translation_status") != "ok":
+        return
+    missing = [
+        lang
+        for lang in ("en", "de")
+        if not (data.get("translations", {}).get(lang, {}).get("term"))
+    ]
+    if missing:
+        message = f"Missing translation term for: {', '.join(missing)}"
+        data["translation_status"] = "partial"
+        LOGGER.warning(message)
+        print(f"::warning title=Partial translation::{message}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -65,11 +81,10 @@ def main() -> int:
 
     overrides = load_overrides(ROOT / "overrides" / "terms.json")
     apply_overrides(data, overrides)
+    check_translations(data)
 
     data["fetched_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-    archive = ROOT / "data" / "archive" / f"{data['date']}.json"
-    write_json(archive, data)
     write_json(ROOT / "data" / "latest.json", data)
 
     LOGGER.info(

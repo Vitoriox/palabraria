@@ -17,15 +17,12 @@ from urllib3.util.retry import Retry
 BASE_URL = "https://dle.rae.es/"
 MADRID = ZoneInfo("Europe/Madrid")
 
-BROWSER_HEADERS = {
+REQUEST_HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        "Palabra-del-dia/1.0 "
+        "(+https://github.com/Vitoriox/palabraria/issues)"
     ),
-    "Accept": (
-        "text/html,application/xhtml+xml,application/xml;q=0.9,"
-        "image/avif,image/webp,*/*;q=0.8"
-    ),
+    "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
     "Cache-Control": "no-cache",
 }
@@ -91,7 +88,7 @@ class WordEntry:
 
 def make_session() -> requests.Session:
     session = requests.Session()
-    session.headers.update(BROWSER_HEADERS)
+    session.headers.update(REQUEST_HEADERS)
     retry = Retry(
         total=3,
         connect=3,

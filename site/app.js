@@ -6,6 +6,19 @@ const setText = (id, value) => {
 const capitalize = (value) =>
   value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 
+const MADRID_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Madrid",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function todayInMadrid() {
+  const parts = MADRID_DATE.formatToParts(new Date());
+  const value = (type) => parts.find((part) => part.type === type).value;
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
 function renderTranslation(lang, translation) {
   const term = byId(`${lang}-term`);
   const definition = byId(`${lang}-definition`);
@@ -26,9 +39,13 @@ function render(data) {
   renderTranslation("en", translations.en);
   renderTranslation("de", translations.de);
 
-  const url = data.url || "https://dle.rae.es/";
-  byId("word-link").href = url;
-  byId("source-link").href = url;
+  const stale = byId("stale");
+  if (typeof data.date === "string" && data.date < todayInMadrid()) {
+    stale.textContent = `Edición del ${data.display_date || data.date}. Hoy todavía no hay datos nuevos.`;
+    stale.hidden = false;
+  } else {
+    stale.hidden = true;
+  }
 
   document.title = `${data.word} — Palabra del día`;
   byId("loading").hidden = true;

@@ -12,6 +12,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import daily  # noqa: E402
 from lib import dictionary  # noqa: E402
 from lib.overrides import apply_overrides, load_overrides  # noqa: E402
 from lib.rae import (  # noqa: E402
@@ -144,6 +145,36 @@ class OverrideTests(unittest.TestCase):
             path.write_text(json.dumps([]), encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_overrides(path)
+
+
+class TranslationStatusTests(unittest.TestCase):
+    def test_flags_missing_term(self) -> None:
+        data = {
+            "translation_status": "ok",
+            "translations": {
+                "en": {"term": "nightwalk", "definition": "To walk at night."},
+                "de": {"term": None, "definition": "Nachts umher."},
+            },
+        }
+        with mock.patch("builtins.print"), self.assertLogs("daily", level="WARNING"):
+            daily.check_translations(data)
+        self.assertEqual(data["translation_status"], "partial")
+
+    def test_keeps_failed_status(self) -> None:
+        data = {"translation_status": "failed", "translations": {}}
+        daily.check_translations(data)
+        self.assertEqual(data["translation_status"], "failed")
+
+    def test_leaves_complete_translations_alone(self) -> None:
+        data = {
+            "translation_status": "ok",
+            "translations": {
+                "en": {"term": "nightwalk"},
+                "de": {"term": "Nachtwanderung"},
+            },
+        }
+        daily.check_translations(data)
+        self.assertEqual(data["translation_status"], "ok")
 
 
 class FakeResponse:
