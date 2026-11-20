@@ -14,80 +14,42 @@
 </head>
 <body>
   <main class="page">
-    <header class="masthead">
-      <p class="eyebrow">Palabra del día</p>
-      <p class="date" id="date"></p>
-    </header>
+    <p class="date" id="date"></p>
 
     <section class="status" id="loading" role="status">
-      <p>Cargando la palabra de hoy…</p>
+      <p>Cargando…</p>
     </section>
 
     <noscript>
-      <p class="status">
-        Esta página necesita JavaScript. También puedes consultar la palabra
-        del día en <a href="https://dle.rae.es/">dle.rae.es</a>.
-      </p>
+      <p class="status">Esta página necesita JavaScript.</p>
     </noscript>
 
     <section class="status status--error" id="error" hidden>
-      <p class="status__title">No se pudo cargar la palabra</p>
-      <p class="status__text" id="error-message"></p>
-      <p class="status__text">
-        <a href="https://dle.rae.es/" target="_blank" rel="noopener">Consultar el DLE directamente</a>
-      </p>
+      <p id="error-message"></p>
     </section>
 
     <article class="card" id="card" hidden>
-      <div class="word-row">
-        <h1 class="word">
-          <a id="word-link" href="https://dle.rae.es/" target="_blank" rel="noopener"><span id="word"></span></a>
-        </h1>
-        <p class="pos" id="pos" hidden></p>
-      </div>
+      <h1 class="word">
+        <a id="word-link" href="https://dle.rae.es/" target="_blank" rel="noopener"><span id="word"></span></a>
+      </h1>
 
       <p class="definition" id="definition"></p>
 
-      <details class="other" id="other-senses-wrap" hidden>
-        <summary id="other-summary">Otras acepciones</summary>
-        <ol class="other__list" id="other-senses"></ol>
-      </details>
-
-      <hr class="rule">
-
       <div class="translations">
         <section class="translation" lang="en">
-          <div class="translation__head">
-            <span class="translation__lang">English</span>
-            <span class="badge" id="en-badge" hidden></span>
-          </div>
+          <p class="translation__lang">English</p>
           <p class="translation__term" id="en-term"></p>
           <p class="translation__definition" id="en-definition"></p>
         </section>
-
         <section class="translation" lang="de">
-          <div class="translation__head">
-            <span class="translation__lang">Deutsch</span>
-            <span class="badge" id="de-badge" hidden></span>
-          </div>
+          <p class="translation__lang">Deutsch</p>
           <p class="translation__term" id="de-term"></p>
           <p class="translation__definition" id="de-definition"></p>
         </section>
       </div>
 
-      <p class="note" id="translation-note" hidden></p>
-
-      <footer class="card__footer">
-        <a id="source-link" href="https://dle.rae.es/" target="_blank" rel="noopener">DLE · RAE-ASALE</a>
-        <span class="provider" id="provider-note"></span>
-      </footer>
+      <p class="source"><a id="source-link" href="https://dle.rae.es/" target="_blank" rel="noopener">DLE · RAE-ASALE</a></p>
     </article>
-
-    <p class="stale" id="stale" hidden></p>
-
-    <footer class="page-footer">
-      <p>Una palabra al día, con su definición y su traducción.</p>
-    </footer>
   </main>
 
   <script src="app.js" defer></script>

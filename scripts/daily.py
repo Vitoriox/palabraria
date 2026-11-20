@@ -11,26 +11,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib.deepl import DeepLError, translate_entry
+from lib.dictionary import DictionaryError, translate_entry
 from lib.overrides import apply_overrides, load_overrides
 from lib.rae import RaeError, fetch_word_of_day
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGGER = logging.getLogger("daily")
-
-
-def load_dotenv(path: Path) -> None:
-    if not path.exists():
-        return
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        name, value = line.split("=", 1)
-        name = name.strip()
-        value = value.strip().strip("'\"")
-        if name and name not in os.environ:
-            os.environ[name] = value
 
 
 def write_json(path: Path, data: dict) -> None:
@@ -48,15 +34,11 @@ def main() -> int:
     parser.add_argument(
         "--skip-translation",
         action="store_true",
-        help="Fetch the RAE entry without calling DeepL",
+        help="Fetch the RAE entry without translating",
     )
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s %(message)s",
-    )
-    load_dotenv(ROOT / ".env")
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
     try:
         entry = fetch_word_of_day()
@@ -65,31 +47,21 @@ def main() -> int:
         return 1
 
     data = entry.to_dict()
-    key = os.getenv("DEEPL_API_KEY", "").strip()
 
-    if args.skip_translation or not key:
+    if args.skip_translation:
         data["translations"] = {}
         data["translation_status"] = "skipped"
-        reason = (
-            "translation skipped by flag"
-            if args.skip_translation
-            else "DEEPL_API_KEY is not set"
-        )
-        LOGGER.warning("Translations not generated: %s", reason)
+        LOGGER.warning("Translations skipped by flag")
     else:
         try:
-            data["translations"] = translate_entry(
-                data["word"],
-                data["definition"],
-                key,
-            )
+            data["translations"] = translate_entry(data["word"], data["definition"])
             data["translation_status"] = "ok"
-        except DeepLError as exc:
+        except DictionaryError as exc:
             data["translations"] = {}
             data["translation_status"] = "failed"
             data["translation_error"] = str(exc)[:300]
-            LOGGER.warning("DeepL translation failed: %s", exc)
-            print(f"::warning title=DeepL translation failed::{exc}")
+            LOGGER.warning("Translation failed: %s", exc)
+            print(f"::warning title=Translation failed::{exc}")
 
     overrides = load_overrides(ROOT / "overrides" / "terms.json")
     apply_overrides(data, overrides)
@@ -97,9 +69,8 @@ def main() -> int:
     data["fetched_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     archive = ROOT / "data" / "archive" / f"{data['date']}.json"
-    latest = ROOT / "data" / "latest.json"
     write_json(archive, data)
-    write_json(latest, data)
+    write_json(ROOT / "data" / "latest.json", data)
 
     LOGGER.info(
         "Stored %r (%s), translations: %s",

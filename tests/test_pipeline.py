@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 import sys
 import tempfile
@@ -11,7 +12,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lib import deepl  # noqa: E402
+from lib import dictionary  # noqa: E402
 from lib.overrides import apply_overrides, load_overrides  # noqa: E402
 from lib.rae import (  # noqa: E402
     RaeError,
@@ -76,9 +77,7 @@ class EntryTests(unittest.TestCase):
         self.assertEqual(word, "banco")
         self.assertGreaterEqual(len(senses), 5)
         self.assertEqual(senses[0].pos, ["m."])
-        self.assertTrue(
-            senses[0].definition.startswith("Asiento, con respaldo")
-        )
+        self.assertTrue(senses[0].definition.startswith("Asiento, con respaldo"))
         self.assertNotIn("jugar banco", senses[0].definition)
         for sense in senses:
             self.assertTrue(sense.definition)
@@ -112,9 +111,9 @@ class OverrideTests(unittest.TestCase):
             "translation_status": "skipped",
             "translations": {
                 "en": {
-                    "term": "nightwalk",
+                    "term": "sleepwalking",
                     "definition": "Wrong",
-                    "provider": "deepl",
+                    "provider": "mymemory",
                     "verified": False,
                 }
             },
@@ -129,9 +128,7 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(data["translations"]["en"]["term"], "to wander at night")
         self.assertTrue(data["translations"]["en"]["verified"])
         self.assertEqual(data["translations"]["en"]["provider"], "manual")
-        self.assertEqual(
-            data["translations"]["de"]["term"], "nachts umherwandern"
-        )
+        self.assertEqual(data["translations"]["de"]["term"], "nachts umherwandern")
         self.assertEqual(data["translation_status"], "manual")
 
     def test_load_overrides_missing_file(self) -> None:
@@ -146,60 +143,57 @@ class OverrideTests(unittest.TestCase):
 
 
 class FakeResponse:
-    def __init__(self, text: str) -> None:
-        self._text = text
+    def __init__(self, translated: str) -> None:
         self.status_code = 200
         self.ok = True
-        self.text = ""
+        self._translated = html.escape(translated)
 
     def json(self) -> dict:
-        return {"translations": [{"text": self._text}]}
+        return {"responseData": {"translatedText": self._translated}}
 
 
 class FakeSession:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def post(self, url, headers=None, data=None, timeout=None):
-        self.calls.append(dict(data))
-        text = data["text"]
-        target = data["target_lang"]
-        if text == "noctambular" and target == "EN-US":
-            return FakeResponse("noctambular")
+    def get(self, url, params=None, timeout=None):
+        self.calls.append(dict(params or {}))
+        text = (params or {}).get("q", "")
+        lang = (params or {}).get("langpair", "").split("|")[-1]
         if text == "noctambular":
-            return FakeResponse("nachts umherwandern")
+            return FakeResponse("noctambular" if lang == "en" else "Nachtschwärmer")
         if text == "Andar vagando de noche.":
             return FakeResponse(
                 "To walk about at night."
-                if target == "EN-US"
-                else "Nachts umherwandern."
+                if lang == "en"
+                else "Nachts umherstreifen."
             )
         return FakeResponse("translated")
 
 
-class DeepLTests(unittest.TestCase):
+class DictionaryTests(unittest.TestCase):
     def test_translate_entry_marks_unchanged_term_missing(self) -> None:
         session = FakeSession()
-        with mock.patch.object(deepl, "_session", return_value=session):
-            result = deepl.translate_entry(
-                "noctambular",
-                "Andar vagando de noche.",
-                "test-key",
+        with mock.patch.object(dictionary, "_session", return_value=session), mock.patch.object(
+            dictionary.time, "sleep"
+        ):
+            result = dictionary.translate_entry(
+                "noctambular", "Andar vagando de noche."
             )
 
         self.assertIsNone(result["en"]["term"])
         self.assertEqual(result["en"]["definition"], "To walk about at night.")
-        self.assertEqual(result["de"]["term"], "nachts umherwandern")
-        self.assertEqual(result["en"]["provider"], "deepl")
+        self.assertEqual(result["de"]["term"], "Nachtschwärmer")
+        self.assertEqual(result["de"]["definition"], "Nachts umherstreifen.")
+        self.assertEqual(result["en"]["provider"], "mymemory")
         self.assertFalse(result["en"]["verified"])
 
-        term_calls = [call for call in session.calls if call["text"] == "noctambular"]
-        self.assertTrue(term_calls)
-        self.assertEqual(term_calls[0]["context"], "Andar vagando de noche.")
+        pairs = [call["langpair"] for call in session.calls]
+        self.assertEqual(pairs, ["es|en", "es|en", "es|de", "es|de"])
 
-    def test_empty_key_raises(self) -> None:
-        with self.assertRaises(deepl.DeepLError):
-            deepl.translate_entry("noctambular", "Andar vagando de noche.", " ")
+    def test_empty_word_raises(self) -> None:
+        with self.assertRaises(dictionary.DictionaryError):
+            dictionary.translate_entry(" ", "Andar vagando de noche.")
 
 
 if __name__ == "__main__":
