@@ -30,11 +30,11 @@ def _session() -> requests.Session:
         }
     )
     retry = Retry(
-        total=2,
-        connect=2,
-        read=2,
-        status=2,
-        backoff_factor=1.5,
+        total=1,
+        connect=1,
+        read=1,
+        status=1,
+        backoff_factor=0.5,
         status_forcelist=(429, 500, 502, 503, 504),
         allowed_methods=frozenset({"GET"}),
         raise_on_status=False,
@@ -47,7 +47,7 @@ def _translate(session: requests.Session, text: str, lang: str) -> str | None:
     """Translate one string into ``lang`` and return plain text."""
     params = {"q": text, "langpair": LANG_PAIRS[lang]}
     try:
-        response = session.get(API_URL, params=params, timeout=(10, 45))
+        response = session.get(API_URL, params=params, timeout=(5, 10))
     except requests.RequestException as exc:
         LOGGER.warning("MyMemory request failed for %s: %s", lang, exc)
         return None
