@@ -220,6 +220,22 @@ To change the time, edit `.github/workflows/daily.yml`.
 
 ---
 
+## Troubleshooting
+
+- **The workflow cannot push the data commit**: check
+  **Settings > Actions > General > Workflow permissions** and allow read and
+  write access. Branch protection rules can also block the bot commit.
+- **Pages returns 404**: make sure **Settings > Pages > Source** is set to
+  **GitHub Actions**, and wait for the deployment job to finish.
+- **Translations are missing**: add the `DEEPL_API_KEY` secret and run the
+  workflow manually. Without a key, the RAE card is still published and a
+  notice is shown.
+- **The RAE request is blocked**: rerun the job later. If GitHub runner IPs
+  are challenged consistently, run the daily script from another machine or
+  add a Playwright fallback to the workflow.
+
+---
+
 ## Attribution and scope
 
 - Definitions come from the *Diccionario de la lengua española*, 24.ª edición
