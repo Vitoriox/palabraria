@@ -1,27 +1,27 @@
 {
-  "date": "2026-11-20",
-  "display_date": "viernes, 20 de noviembre de 2026",
-  "word": "noctambular",
+  "date": "2026-11-21",
+  "display_date": "sábado, 21 de noviembre de 2026",
+  "word": "cúneo",
   "pos": [
-    "intr."
+    "m."
   ],
-  "url": "https://dle.rae.es/noctambular?m=wotd2",
-  "definition": "Andar vagando de noche.",
+  "url": "https://dle.rae.es/cúneo?m=wotd2",
+  "definition": "En los teatros o anfiteatros antiguos, espacio comprendido entre los vomitorios.",
   "source": "DLE, 24.ª edición (RAE-ASALE)",
   "translations": {
     "en": {
-      "term": "to wander around at night",
-      "definition": "To walk about at night.",
-      "provider": "manual",
-      "verified": true
+      "term": "Cuneus",
+      "definition": "In ancient theaters or amphitheaters, the space between the vomitoria.",
+      "provider": "mymemory",
+      "verified": false
     },
     "de": {
-      "term": "nachts umherwandern",
-      "definition": "Nachts umherstreifen.",
-      "provider": "manual",
-      "verified": true
+      "term": "Keil",
+      "definition": "In antiken Theatern oder Amphitheatern der Raum zwischen den Vomitorien.",
+      "provider": "mymemory",
+      "verified": false
     }
   },
   "translation_status": "ok",
-  "fetched_at": "2026-11-20T17:22:32+00:00"
+  "fetched_at": "2026-11-21T13:39:30+00:00"
 }
