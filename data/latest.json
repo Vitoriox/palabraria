@@ -1,27 +1,27 @@
 {
-  "date": "2026-11-21",
-  "display_date": "sábado, 21 de noviembre de 2026",
-  "word": "cúneo",
+  "date": "2026-11-22",
+  "display_date": "domingo, 22 de noviembre de 2026",
+  "word": "blusero, blusera",
   "pos": [
-    "m."
+    "adj."
   ],
-  "url": "https://dle.rae.es/cúneo?m=wotd2",
-  "definition": "En los teatros o anfiteatros antiguos, espacio comprendido entre los vomitorios.",
+  "url": "https://dle.rae.es/blusero?m=wotd2",
+  "definition": "Perteneciente o relativo al blues.",
   "source": "DLE, 24.ª edición (RAE-ASALE)",
   "translations": {
     "en": {
-      "term": "Cuneus",
-      "definition": "In ancient theaters or amphitheaters, the space between the vomitoria.",
+      "term": "bluesman, blueswoman",
+      "definition": "Belonging to or relating to the blues.",
       "provider": "mymemory",
       "verified": false
     },
     "de": {
-      "term": "Keil",
-      "definition": "In antiken Theatern oder Amphitheatern der Raum zwischen den Vomitorien.",
+      "term": "Blueser, Blueserin",
+      "definition": "Zum Blues gehörend oder damit zusammenhängend.",
       "provider": "mymemory",
       "verified": false
     }
   },
   "translation_status": "ok",
-  "fetched_at": "2026-11-21T13:39:30+00:00"
+  "fetched_at": "2026-11-22T13:32:30+00:00"
 }
