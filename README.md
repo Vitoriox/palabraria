@@ -10,7 +10,7 @@ Vive en https://vitoriox.github.io/palabraria/
 - `scripts/daily.py` consulta `dle.rae.es`, traduce con MyMemory (sin clave) y
   guarda `data/latest.json`.
 - `scripts/build.py` genera `dist/` para GitHub Pages.
-- GitHub Actions lo ejecuta cada día a las 05:30 UTC.
+- GitHub Actions lo ejecuta cada día a las 01:00 de Madrid (CET/CEST).
 
 ## Pruebas
 
