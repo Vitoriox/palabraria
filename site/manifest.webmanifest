@@ -1,7 +1,7 @@
 {
   "name": "Palabra del día",
   "short_name": "Palabra",
-  "description": "La palabra del día de la RAE, con su definición y su traducción al inglés y al alemán.",
+  "description": "Proyecto personal no oficial: palabra del día, definición y traducción automática al inglés y al alemán.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-const CACHE = "palabra-del-dia-v2";
+const CACHE = "palabra-del-dia-v3";
 const SHELL = [
   "./",
   "./styles.css",

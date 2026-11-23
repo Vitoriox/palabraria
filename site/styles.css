@@ -148,6 +148,19 @@ a:focus-visible {
   text-align: center;
 }
 
+.disclaimer {
+  max-width: 62ch;
+  margin: 2.5rem auto 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.disclaimer p {
+  margin: 0.4rem 0;
+}
+
 .status {
   padding: 3rem 1.5rem;
   border: 1px solid var(--line);
