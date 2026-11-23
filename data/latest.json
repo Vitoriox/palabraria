@@ -2,26 +2,15 @@
   "date": "2026-11-22",
   "display_date": "domingo, 22 de noviembre de 2026",
   "word": "blusero, blusera",
-  "pos": [
-    "adj."
-  ],
-  "url": "https://dle.rae.es/blusero?m=wotd2",
   "definition": "Perteneciente o relativo al blues.",
-  "source": "DLE, 24.ª edición (RAE-ASALE)",
   "translations": {
     "en": {
       "term": "bluesman, blueswoman",
-      "definition": "Belonging to or relating to the blues.",
-      "provider": "mymemory",
-      "verified": false
+      "definition": "Belonging to or relating to the blues."
     },
     "de": {
       "term": "Blueser, Blueserin",
-      "definition": "Zum Blues gehörend oder damit zusammenhängend.",
-      "provider": "mymemory",
-      "verified": false
+      "definition": "Zum Blues gehörend oder damit zusammenhängend."
     }
-  },
-  "translation_status": "ok",
-  "fetched_at": "2026-11-22T13:32:30+00:00"
+  }
 }

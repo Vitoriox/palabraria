@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import html
-import json
 import sys
-import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -14,7 +12,6 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import daily  # noqa: E402
 from lib import dictionary  # noqa: E402
-from lib.overrides import apply_overrides, load_overrides  # noqa: E402
 from lib.rae import (  # noqa: E402
     RaeError,
     WordEntry,
@@ -61,45 +58,40 @@ class DateTests(unittest.TestCase):
 
 class EntryTests(unittest.TestCase):
     def test_single_sense(self) -> None:
-        word, senses = parse_entry(
-            fixture("noctambular.html"),
-            "https://dle.rae.es/noctambular",
-        )
+        word, senses = parse_entry(fixture("noctambular.html"))
         self.assertEqual(word, "noctambular")
-        self.assertEqual(len(senses), 1)
-        self.assertEqual(senses[0].pos, ["intr."])
-        self.assertEqual(senses[0].definition, "Andar vagando de noche.")
+        self.assertEqual(senses, ["Andar vagando de noche."])
 
     def test_multiple_senses_exclude_locutions(self) -> None:
-        word, senses = parse_entry(
-            fixture("banco.html"),
-            "https://dle.rae.es/banco",
-        )
+        word, senses = parse_entry(fixture("banco.html"))
         self.assertEqual(word, "banco")
         self.assertGreaterEqual(len(senses), 5)
-        self.assertEqual(senses[0].pos, ["m."])
-        self.assertTrue(senses[0].definition.startswith("Asiento, con respaldo"))
-        self.assertNotIn("jugar banco", senses[0].definition)
+        self.assertTrue(senses[0].startswith("Asiento, con respaldo"))
+        self.assertNotIn("jugar banco", senses[0])
         for sense in senses:
-            self.assertTrue(sense.definition)
-            self.assertNotIn("Permanecer en un banco", sense.definition)
+            self.assertTrue(sense)
+            self.assertNotIn("Permanecer en un banco", sense)
 
     def test_to_dict_keeps_only_primary_sense(self) -> None:
-        _, senses = parse_entry(fixture("banco.html"), "https://dle.rae.es/banco")
         entry = WordEntry(
             word="banco",
             display_date="viernes, 20 de noviembre de 2026",
             iso_date=date(2026, 11, 20),
-            url="https://dle.rae.es/banco",
-            senses=senses,
+            senses=[
+                "Asiento, con respaldo o sin él, en que pueden sentarse dos o más personas.",
+                "Madero grueso escuadrado que se coloca horizontalmente.",
+            ],
         )
-        data = entry.to_dict()
-        self.assertNotIn("other_senses", data)
-        self.assertEqual(data["date"], "2026-11-20")
-        self.assertEqual(data["pos"], ["m."])
         self.assertEqual(
-            data["definition"],
-            "Asiento, con respaldo o sin él, en que pueden sentarse dos o más personas.",
+            entry.to_dict(),
+            {
+                "date": "2026-11-20",
+                "display_date": "viernes, 20 de noviembre de 2026",
+                "word": "banco",
+                "definition": (
+                    "Asiento, con respaldo o sin él, en que pueden sentarse dos o más personas."
+                ),
+            },
         )
 
     def test_clean_text_removes_space_before_punctuation(self) -> None:
@@ -109,77 +101,33 @@ class EntryTests(unittest.TestCase):
         self.assertEqual(clean_text(node), "Andar, vagando.")
 
 
-class OverrideTests(unittest.TestCase):
-    def test_apply_override(self) -> None:
-        data = {
-            "word": "noctambular",
-            "translation_status": "skipped",
-            "translations": {
-                "en": {
-                    "term": "sleepwalking",
-                    "definition": "Wrong",
-                    "provider": "mymemory",
-                    "verified": False,
-                }
-            },
-        }
-        overrides = {
-            "noctambular": {
-                "en": {"term": "to wander at night", "definition": "To walk at night."},
-                "de": {"term": "nachts umherwandern"},
-            }
-        }
-        apply_overrides(data, overrides)
-        self.assertEqual(data["translations"]["en"]["term"], "to wander at night")
-        self.assertTrue(data["translations"]["en"]["verified"])
-        self.assertEqual(data["translations"]["en"]["provider"], "manual")
-        self.assertEqual(data["translations"]["de"]["term"], "nachts umherwandern")
-        self.assertEqual(data["translation_status"], "manual")
-
-    def test_load_overrides_missing_file(self) -> None:
-        self.assertEqual(load_overrides(ROOT / "does-not-exist.json"), {})
-
-    def test_load_overrides_invalid_shape(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "terms.json"
-            path.write_text(json.dumps([]), encoding="utf-8")
-            with self.assertRaises(ValueError):
-                load_overrides(path)
-
-
 class TranslationStatusTests(unittest.TestCase):
     def test_flags_missing_term(self) -> None:
         data = {
-            "translation_status": "ok",
             "translations": {
                 "en": {"term": "nightwalk", "definition": "To walk at night."},
                 "de": {"term": None, "definition": "Nachts umher."},
-            },
+            }
         }
         with mock.patch("builtins.print"), self.assertLogs("daily", level="WARNING"):
-            daily.check_translations(data)
-        self.assertEqual(data["translation_status"], "partial")
+            status = daily.check_translations(data, "ok")
+        self.assertEqual(status, "partial")
 
     def test_keeps_failed_status(self) -> None:
-        data = {"translation_status": "failed", "translations": {}}
-        daily.check_translations(data)
-        self.assertEqual(data["translation_status"], "failed")
+        self.assertEqual(daily.check_translations({"translations": {}}, "failed"), "failed")
 
     def test_leaves_complete_translations_alone(self) -> None:
         data = {
-            "translation_status": "ok",
             "translations": {
                 "en": {"term": "nightwalk"},
                 "de": {"term": "Nachtwanderung"},
-            },
+            }
         }
-        daily.check_translations(data)
-        self.assertEqual(data["translation_status"], "ok")
+        self.assertEqual(daily.check_translations(data, "ok"), "ok")
 
 
 class FakeResponse:
     def __init__(self, translated: str) -> None:
-        self.status_code = 200
         self.ok = True
         self._translated = html.escape(translated)
 
@@ -191,7 +139,7 @@ class FakeSession:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def get(self, url, params=None, timeout=None):
+    def get(self, _url, params=None, timeout=None):
         self.calls.append(dict(params or {}))
         text = (params or {}).get("q", "")
         lang = (params or {}).get("langpair", "").split("|")[-1]
@@ -203,7 +151,7 @@ class FakeSession:
                 if lang == "en"
                 else "Nachts umherstreifen."
             )
-        return FakeResponse("translated")
+        raise AssertionError(f"Unexpected request: {text!r}")
 
 
 class DictionaryTests(unittest.TestCase):
@@ -220,8 +168,6 @@ class DictionaryTests(unittest.TestCase):
         self.assertEqual(result["en"]["definition"], "To walk about at night.")
         self.assertEqual(result["de"]["term"], "Nachtschwärmer")
         self.assertEqual(result["de"]["definition"], "Nachts umherstreifen.")
-        self.assertEqual(result["en"]["provider"], "mymemory")
-        self.assertFalse(result["en"]["verified"])
 
         pairs = [call["langpair"] for call in session.calls]
         self.assertEqual(pairs, ["es|en", "es|en", "es|de", "es|de"])

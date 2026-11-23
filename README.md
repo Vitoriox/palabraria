@@ -12,10 +12,6 @@ Vive en https://vitoriox.github.io/palabraria/
 - `scripts/build.py` genera `dist/` para GitHub Pages.
 - GitHub Actions lo ejecuta cada día a las 05:30 UTC.
 
-## Corregir una traducción
-
-Edita `overrides/terms.json` con el término y la definición correctos.
-
 ## Pruebas
 
     python -m unittest discover -s tests -v

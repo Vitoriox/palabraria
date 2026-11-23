@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import html
-import json
 import logging
 import time
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter, Retry
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +54,7 @@ def _translate(session: requests.Session, text: str, lang: str) -> str | None:
         return None
     try:
         data = response.json()
-    except (ValueError, json.JSONDecodeError) as exc:
+    except ValueError as exc:
         LOGGER.warning("MyMemory returned invalid JSON for %s: %s", lang, exc)
         return None
 
@@ -82,17 +80,11 @@ def translate_entry(word: str, definition: str) -> dict[str, dict]:
         term = _translate(session, word, lang)
         time.sleep(0.4)
         translated_definition = _translate(session, definition, lang)
-        time.sleep(0.4)
 
         if term and term.casefold() == word.casefold():
             term = None
 
-        result[lang] = {
-            "term": term,
-            "definition": translated_definition,
-            "provider": "mymemory",
-            "verified": False,
-        }
+        result[lang] = {"term": term, "definition": translated_definition}
         LOGGER.info("%s: %r / %r", lang, term, translated_definition)
 
     return result

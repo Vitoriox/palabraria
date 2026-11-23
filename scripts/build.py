@@ -9,12 +9,10 @@ import shutil
 import sys
 from pathlib import Path
 
-from lib.overrides import apply_overrides, load_overrides
-
 ROOT = Path(__file__).resolve().parents[1]
 LOGGER = logging.getLogger("build")
 
-REQUIRED_FIELDS = ("date", "word", "definition", "url")
+REQUIRED_FIELDS = ("date", "word", "definition")
 
 
 def main() -> int:
@@ -35,9 +33,6 @@ def main() -> int:
     if missing:
         LOGGER.error("data/latest.json is missing fields: %s", ", ".join(missing))
         return 1
-
-    overrides = load_overrides(ROOT / "overrides" / "terms.json")
-    apply_overrides(data, overrides)
 
     dist = ROOT / "dist"
     shutil.rmtree(dist, ignore_errors=True)

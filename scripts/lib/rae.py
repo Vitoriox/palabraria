@@ -4,15 +4,14 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter, Retry
 
 BASE_URL = "https://dle.rae.es/"
 MADRID = ZoneInfo("Europe/Madrid")
@@ -50,39 +49,23 @@ class RaeError(RuntimeError):
     """Base error for RAE fetching and parsing."""
 
 
-class RaeBlockedError(RaeError):
-    """The request was answered with a Cloudflare challenge."""
-
-
-@dataclass
-class Sense:
-    pos: list[str] = field(default_factory=list)
-    acepcion: str = ""
-    definition: str = ""
-
-
 @dataclass
 class WordEntry:
     word: str
     display_date: str
     iso_date: date
-    url: str
-    senses: list[Sense]
+    senses: list[str]
 
     @property
-    def primary(self) -> Sense:
+    def primary(self) -> str:
         return self.senses[0]
 
     def to_dict(self) -> dict:
-        primary = self.primary
         return {
             "date": self.iso_date.isoformat(),
             "display_date": self.display_date,
             "word": self.word,
-            "pos": primary.pos,
-            "url": self.url,
-            "definition": primary.definition,
-            "source": "DLE, 24.ª edición (RAE-ASALE)",
+            "definition": self.primary,
         }
 
 
@@ -108,7 +91,7 @@ def _get(session: requests.Session, url: str) -> str:
     response.raise_for_status()
     text = response.text
     if "Just a moment" in text and "c-word-day" not in text:
-        raise RaeBlockedError(
+        raise RaeError(
             "Cloudflare returned a challenge page instead of the DLE. "
             "Retry later or run the fetch from a different network."
         )
@@ -160,23 +143,7 @@ def parse_homepage(html: str) -> tuple[str, str, str]:
     return word, display_date, urljoin(BASE_URL, href)
 
 
-def _pos_for(item) -> list[str]:
-    first_div = item.find("div", recursive=False)
-    if first_div is None:
-        return []
-
-    result = []
-    for abbr in first_div.find_all("abbr", recursive=False):
-        classes = set(abbr.get("class", []))
-        if classes & {"usgc", "leyenda", "lang", "proc"}:
-            continue
-        value = clean_text(abbr)
-        if value and value not in result:
-            result.append(value)
-    return result
-
-
-def parse_entry(html: str, url: str) -> tuple[str, list[Sense]]:
+def parse_entry(html: str) -> tuple[str, list[str]]:
     soup = BeautifulSoup(html, "html.parser")
     article = soup.select_one("article.o-main__article")
     if article is None:
@@ -206,8 +173,7 @@ def parse_entry(html: str, url: str) -> tuple[str, list[Sense]]:
             "div.c-definitions__item[role='definition']"
         )
 
-    senses: list[Sense] = []
-    previous_pos: list[str] = []
+    senses: list[str] = []
     for item in items:
         if item.find_parent("div", class_="fc-definition"):
             continue
@@ -215,17 +181,8 @@ def parse_entry(html: str, url: str) -> tuple[str, list[Sense]]:
         if definition_node is None:
             continue
         definition = clean_text(definition_node)
-        if not definition:
-            continue
-
-        pos = _pos_for(item) or previous_pos
-        previous_pos = pos
-        acepcion_node = item.select_one(".n_acep")
-        acepcion = clean_text(acepcion_node) if acepcion_node else ""
-
-        senses.append(
-            Sense(pos=list(pos), acepcion=acepcion, definition=definition)
-        )
+        if definition:
+            senses.append(definition)
 
     if not senses:
         raise RaeError("No definitions could be parsed from the DLE entry")
@@ -233,14 +190,14 @@ def parse_entry(html: str, url: str) -> tuple[str, list[Sense]]:
     return word, senses
 
 
-def fetch_word_of_day(session: requests.Session | None = None) -> WordEntry:
-    session = session or make_session()
+def fetch_word_of_day() -> WordEntry:
+    session = make_session()
 
     homepage = _get(session, BASE_URL)
     word, display_date, url = parse_homepage(homepage)
 
     entry_html = _get(session, url)
-    entry_word, senses = parse_entry(entry_html, url)
+    entry_word, senses = parse_entry(entry_html)
 
     if entry_word.casefold() != word.casefold():
         LOGGER.warning(
@@ -264,6 +221,5 @@ def fetch_word_of_day(session: requests.Session | None = None) -> WordEntry:
         word=word,
         display_date=display_date,
         iso_date=iso_date,
-        url=url,
         senses=senses,
     )
