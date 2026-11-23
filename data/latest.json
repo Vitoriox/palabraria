@@ -1,16 +1,16 @@
 {
-  "date": "2026-11-22",
-  "display_date": "domingo, 22 de noviembre de 2026",
-  "word": "blusero, blusera",
-  "definition": "Perteneciente o relativo al blues.",
+  "date": "2026-11-23",
+  "display_date": "lunes, 23 de noviembre de 2026",
+  "word": "torbellino",
+  "definition": "Remolino de viento.",
   "translations": {
     "en": {
-      "term": "bluesman, blueswoman",
-      "definition": "Belonging to or relating to the blues."
+      "term": "vortex",
+      "definition": "whirlwind, wind eddy"
     },
     "de": {
-      "term": "Blueser, Blueserin",
-      "definition": "Zum Blues gehörend oder damit zusammenhängend."
+      "term": "Wirbelstärke",
+      "definition": "Wirbelwind"
     }
   }
 }
