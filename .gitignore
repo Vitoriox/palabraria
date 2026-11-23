@@ -2,6 +2,6 @@
 __pycache__/
 *.py[cod]
 dist/
+data/
 .DS_Store
-data/*.tmp
 .idea
